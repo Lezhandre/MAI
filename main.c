@@ -1,15 +1,15 @@
-#include <stdio.h>
-#include <locale.h>
-#include <string.h>
-#include <math.h>
 #include <errno.h>
 
 /*\8-я лаба
+#include <stdio.h>
+#include <locale.h>
+#include <string.h>
+
 void comrade(FILE *);
 
 int main() {
     setlocale(LC_ALL, "Russian_Russia.1251");
-    FILE* trash = fopen("/Users/michaelduzhenko/Documents/Code on XCode/прогание наяву/прогание наяву/a.txt", "r");
+    FILE* trash = fopen("a.txt", "r");
     comrade(trash);
     return 0;
 }
@@ -36,12 +36,15 @@ void comrade(FILE* file){
 /*\*/
 
 /*\9-я  лаба, часть 1
+#include <stdio.h>
+#include <locale.h>
+
 char txt_to_bin(FILE *, FILE *);
 
 int main() {
     setlocale(LC_ALL, "Russian_Russia.1251");
-    FILE *out = fopen("/Users/michaelduzhenko/Documents/Code on XCode/прогание наяву/прогание наяву/a.txt", "r");
-    FILE *in = fopen("/Users/michaelduzhenko/Documents/Code on XCode/прогание наяву/a.bin", "wb");
+    FILE *out = fopen("a.txt", "r");
+    FILE *in = fopen("a.bin", "wb");
     if (out != NULL && in != NULL) {
         if (txt_to_bin(out, in) < 0){
             printf("Не удалось перевести текстовый файл в бинарный\n");
@@ -83,9 +86,12 @@ char txt_to_bin(FILE *out, FILE *in) {
 /*\*/
 
 /*\9-я лаба, часть 2
+#include <stdio.h>
+#include <locale.h>
+
 int main(){
     setlocale(LC_ALL, "Russian_Russia.1251");
-    FILE *out = fopen("/Users/michaelduzhenko/Documents/Code on XCode/прогание наяву/a.bin", "rb");
+    FILE *out = fopen("a.bin", "rb");
     unsigned SoF = 0;
     if (out == NULL) {
         printf("Не удалось открыть файл\n");
@@ -112,14 +118,18 @@ int main(){
 /*\*/
 
 /*\10-я лаба
+#include <stdio.h>
+#include <locale.h>
+
 void fill_CfW(char *);
 char ICoW(unsigned char);
 char fill_with_whitespaces(char *, unsigned);
 
-int main(){ //int argc, char *argv[]
-    const size_t rec_size = 40;
-    FILE *in = fopen("/Users/michaelduzhenko/Documents/Code on XCode/прогание наяву/прогание наяву/a.txt", "r");
-    FILE *out = fopen("/Users/michaelduzhenko/Documents/Code on XCode/прогание наяву/прогание наяву/b.txt", "w");
+int main(){
+    setlocale(LC_ALL, "Russian_Russia.1251");
+    const size_t rec_size = 60;
+    FILE *in = fopen("a.txt", "r");
+    FILE *out = fopen("b.txt", "w");
     if (out == NULL || in == NULL) {
         printf("Один из файлов не может быть открыт\n");
         return 0;
@@ -214,13 +224,16 @@ char fill_with_whitespaces(char *str, unsigned rec_size){
 /*\*/
 
 /*\11-ая лаба
+#include <stdio.h>
+#include <locale.h>
+
 void reverse(char *, short);
 void change_str(char *);
 
 int main(){
     setlocale(LC_ALL, "RUSSIAN");
     char str[257];
-    FILE *in = fopen("/Users/michaelduzhenko/Documents/Code on XCode/прогание наяву/прогание наяву/a.txt", "r");
+    FILE *in = fopen("a.txt", "r");
     FILE *tmpf = tmpfile();
     while (fgets(str, 257, in) != 0){
         change_str(str);
@@ -230,7 +243,7 @@ int main(){
     }
     fclose(in);
     rewind(tmpf);
-    in = fopen("/Users/michaelduzhenko/Documents/Code on XCode/прогание наяву/прогание наяву/a.txt", "w");
+    in = fopen("a.txt", "w");
     while (fgets(str, 257, tmpf) != 0){
         fputs(str, in);
         if (fgets(str, 257, tmpf) != 0)
@@ -276,7 +289,9 @@ void reverse(char *str, short n){
 }
 /*\*/
 
-/*\12-ая лаба*/
+/*\12-ая лаба
+#include <stdio.h>
+#include <math.h>
 //double fact(unsigned short); //факториал
 double f(double); //функция, вычисляющая значение функции
 double sum(double, unsigned); //сумма n слагаемых для x
@@ -285,11 +300,7 @@ unsigned NQoT(double, double); //функция, вычисляющая скол
 int main(){
     double e = 1e-6, x; //e - точность
     int a = 5, m = 6;
-    unsigned n = 0;
-    for (unsigned i = 0; i <= a * 10; ++i){
-        x = (double)i / 10;
-        n = (n < NQoT(x, e)) ? NQoT(x, e) : n;
-    }
+    unsigned n = (NQoT(10, e) > NQoT(15, e))? NQoT(10, e) : NQoT(15, e);
     for (unsigned i = 0; i <= a * 10; ++i){
         x = (double)i / 10;
         printf("%lf\t", sum(x, n));
@@ -305,13 +316,6 @@ double f(double x){
         ans = 1;
     return ans;
 }
-
-/*double fact(unsigned short n){
-    double ans = 1;
-    for (short i = 1; i <= n; ++i)
-        ans *= i;
-    return ans;
-}*/
 
 double sum(double x, unsigned n){
     double ans = 0, fact = 1;
@@ -329,3 +333,235 @@ unsigned NQoT(double x, double e){
     return nq;
 }
 /*\*/
+
+/*\13 лаба, 1 часть
+#include <stdio.h>
+#include <math.h>
+
+double f(double);
+double find_root(double, double, double);
+
+int main(){
+    double eps = 0.001;
+    double a = 1.7, b = 2.7;
+    double ans = find_root(a, b, eps);
+    printf("Root is %lf\n", ans);
+    return 0;
+}
+
+double f(double x){
+    return x*x - 1.3*log(x+0.5) - 2.8*x + 2.35;
+}
+
+double find_root(double a, double b, double eps){
+    double x = a;
+    if (f(a) * f(b) > 0)
+        return NAN;
+    while (fabs(b - a) >= eps && fabs(f(x)) > eps){
+        x = (a*f(b) - b*f(a)) / (f(b) - f(a));
+        if (f(b) * f(x) < 0)
+            a = x;
+        else
+            b = x;
+    }
+    return x;
+}
+/*\*/
+
+/*\13 лаба, часть 2
+#include <stdio.h>
+#include <math.h>
+
+double f(double);
+double integral(double, double, double);
+
+const int kek = 160;
+
+int main(){
+    double eps = 0.0005;
+    double a = 0, b = 5, ans;
+    ans = integral(a, b, eps);
+    printf("Integral is %lf\n", ans);
+    return 0;
+}
+
+double f(double x){
+    return exp(x) * sin(x)*sin(x);
+}
+
+double integral(double a, double b, double eps){
+    double square = f((a + b) / 2) * (b - a), prev_sq = 0;
+    for (unsigned n = 10; n <= kek; n += 5){ //fabs(square - prev_sq) > eps
+        prev_sq = square;
+        square = 0;
+        for (unsigned i = 0; i < n; ++i)
+            square += f(a + (b-a)/n * (2*i+1)/2) * (b-a)/n;
+    }
+    return square;
+}
+/*\*/
+
+/*\14-ая лаба
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <GLUT/glut.h>
+
+double f(double);
+double min_on(double, double);
+double max_on(double, double);
+void output_gist(double, double, double, double);
+
+int width = 800, height = 733;
+double a, b, y_min, y_max;
+
+void draw_num(double, double, double);
+void display(void);
+void reshape(int, int);
+
+int main(int argc, char *argv[]){
+    a = -3, b = 2.5; //можно ли избавиться от глобальных переменных?
+    y_min = -pow(16, 1/3.);
+    y_max = pow(16, 1/3.);
+    output_gist(a, b, y_min, y_max);
+    
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE); //Два буфера и картинка определяется палитрой RGB
+    glutInitWindowSize(width, height); //инициализация окна с размерами width x height
+    glutCreateWindow("График функции y = (x+2)^(2/3) - (x-2)^(2/3)"); //Название окна
+    
+    glutDisplayFunc(display); //функция, отвечающая за отрисовку
+    glutReshapeFunc(reshape);
+    glPointSize(3);
+    glClearColor(1, 1, 1, 0); //Заполняем задний фон белым цветом
+    
+    glutMainLoop(); //цикл состоящий из функций
+    return 0;
+}
+
+void output_gist(double a, double b, double y_min, double y_max){
+    FILE* out = fopen("Гистограмма.txt", "w");
+    if (out == NULL) {
+        printf("Файл для вывода гистограммы не может быть создан!\n");
+        exit(0);
+    }
+    fprintf(out, "Гистограмма y = (x+2)^(2/3) - (x-2)^(2/3):\n\n");
+    unsigned i = 0;
+    for (double x = a, y = y_max; x <= b; ++i, x = a + i/4.0){
+        for (int i = -25; i <= 25; ++i){
+            if (i * f(x) > 0 && fabs(f(x)) * 25 / y > abs(i))
+                fputc('#', out);
+            else if (i == 0)
+                fputc('|', out);
+            else
+                fputc(' ', out);
+        }
+        if (2 * x == floor(2 * x))
+            fprintf(out, " %g", x);
+        fputc('\n', out);
+    }
+    fclose(out);
+}
+
+void draw_num(double x, double i, double j){
+    char str[10];
+    if (x == -0)
+        x = 0;
+    sprintf(str, "%g", x);
+    glColor3f(1, 0.5, 0);
+    glRasterPos2f(i + 8. / width, j - 20. / height);
+    for (unsigned k = 0; str[k] != '\0'; ++k)
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, str[k]);
+    //glFinish();
+}
+
+// эта функция управляет всем выводом на экран
+void display(void){
+    //Рисуем ось ординат
+    glClear(GL_COLOR_BUFFER_BIT);
+    glBegin(GL_LINES); //прорисовка оси ординат
+    glColor3f(0, 0, 0);
+    glVertex2f(-1, 0);
+    glVertex2f(1, 0);
+    glEnd();
+    glBegin(GL_TRIANGLES); //прорисовка стрелки для оси ординат
+    glVertex2f(1 - 12. / width, -6. / height);
+    glVertex2f(1, 0);
+    glVertex2f(1 - 12. / width, 6. / height);
+    glEnd();
+    glBegin(GL_POINTS); //прорисовка делений на оси ординат
+    double i;
+    for (int x = a; x <= b; ++x){
+        i = 2 * (x - a) / (b - a) - 1;
+        glColor3f(0, 0, 0);
+        glVertex2d(i, 0);
+    }
+    glEnd();
+    //прорисовка чиселок для делений
+    for (int x = a; x <= b; ++x){
+        i = 2 * (x - a) / (b - a) - 1;
+        draw_num(x, i, 0);
+    }
+    
+    //Рисуем ось абсцисс
+    glBegin(GL_LINES);  //прорисовка оси абсцисс
+    glColor3f(0, 0, 0);
+    glVertex2f(-(b + a) / (b - a), -1);
+    glVertex2f(-(b + a) / (b - a), 1);
+    glEnd();
+    glBegin(GL_TRIANGLES); //прорисовка стрелки для оси абсцисс
+    glVertex2f(-(b + a) / (b - a) - 6. / width, 1 - 12. / height);
+    glVertex2f(-(b + a) / (b - a), 1);
+    glVertex2f(-(b + a) / (b - a) + 6. / width, 1 - 12. / height);
+    glEnd();
+    glBegin(GL_POINTS); //прорисовка делений на оси абсцисс
+    double j;
+    for (int y = ceil(y_min); y <= y_max; ++y){
+        j = 2 * y / (b - a);
+        glColor3f(0, 0, 0);
+        glVertex2d(-(b + a) / (b - a), j);
+    }
+    glEnd();
+    //прорисовка чиселок для делений
+    for (int y = ceil(y_min); y <= y_max; ++y){
+        j = 2 * y / (b - a);
+        draw_num(y, -(b + a) / (b - a), j);
+    }
+    //Рисуем график функции
+    glBegin(GL_LINE_STRIP);
+    glColor3f(0, 0, 1);
+    double x;
+    for (unsigned i = 0; i <= 1e4; ++i){
+        x = (b - a) * i / 1e4 + a;
+        j = 2 * f(x) / (y_max - y_min);
+        glVertex2d((2 * i - 1e4) / 1e4, j);
+    }
+    glEnd();
+    
+    // Меняем буферы
+    glutSwapBuffers();
+}
+
+void reshape(int w, int h){
+    width = w;
+    height = h;
+    
+    //Устанавливаем размеры области отображения
+    glViewport(0, 0, width, height);
+}
+
+double f(double x){
+    return pow(pow(x+2, 2), 1.0/3) - pow(pow(x-2, 2), 1.0/3);
+}
+/*\*/
+
+#include <stdio.h>
+#include <math.h>
+
+int main(){
+    FILE* in = fopen("a.txt", "r");
+    double (*func)(double) = exp;
+    double a = 1;
+    printf("%lf\n", func(a));
+    return 0;
+}
