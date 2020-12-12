@@ -1,5 +1,3 @@
-#include <errno.h>
-
 /*\8-я лаба
 #include <stdio.h>
 #include <locale.h>
