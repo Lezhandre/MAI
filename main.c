@@ -554,14 +554,3 @@ double f(double x){
     return pow(pow(x+2, 2), 1.0/3) - pow(pow(x-2, 2), 1.0/3);
 }
 /*\*/
-
-#include <stdio.h>
-#include <math.h>
-
-int main(){
-    FILE* in = fopen("a.txt", "r");
-    double (*func)(double) = exp;
-    double a = 1;
-    printf("%lf\n", func(a));
-    return 0;
-}
