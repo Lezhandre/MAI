@@ -1,19 +1,21 @@
-//#define _CRT_SECURE_NO_WARNINGS
-
 #include <vector>
 #include <valarray>
 #include <cmath>
 #include <cstdio>
+#include <wchar.h>
 #include <iostream>
 #include <algorithm>
 #include <windows.h>
 #include <conio.h>
+#include <string>
 #undef min
 #undef max
 
 using namespace std;
 
 vector <double> m;
+unsigned l;
+double eps;
 
 vector <double> Gaus(vector <valarray<double>> a) {
     unsigned n = a.size();
@@ -80,76 +82,150 @@ double Splines(valarray<double>& X, valarray<double>& Y, double x) {
     return (m[l + 1] * pow(x - X[l], 3) + m[l] * pow(X[l + 1] - x, 3)) / (6 * (X[l + 1] - X[l])) + (Y[l + 1] - m[l + 1] * pow((X[l + 1] - X[l]), 2) / 6) * (x - X[l]) / (X[l + 1] - X[l]) + (Y[l] - m[l] * pow((X[l + 1] - X[l]), 2) / 6) * (X[l + 1] - x) / (X[l + 1] - X[l]);
 }
 
+double Spline(valarray<double>& X, valarray<double>& Y, double x) {
+    return (m[l + 1] * pow(x - X[l], 3) + m[l] * pow(X[l + 1] - x, 3)) / (6 * (X[l + 1] - X[l])) + (Y[l + 1] - m[l + 1] * pow((X[l + 1] - X[l]), 2) / 6) * (x - X[l]) / (X[l + 1] - X[l]) + (Y[l] - m[l] * pow((X[l + 1] - X[l]), 2) / 6) * (X[l + 1] - x) / (X[l + 1] - X[l]);
+}
+
 double ApproxPolynom(valarray<double>& X, valarray<double>& Y, double x) {
     unsigned size = m.size();
     double ans = 0;
-    for (unsigned i = size; i > 0; --i) {
+    for (unsigned i = size; i > 0; --i)
         ans += pow(x, size - i) * m[i - 1];
-    }
     return ans;
 }
 
-void DrawInterPol(valarray<double>& X, valarray<double>& Y, double(*f)(valarray<double>&, valarray<double>&, double)) {
-    Sleep(1000);
-    printf("\033[2J");
+void DrawPlot(HDC hDC, unsigned width, unsigned height, double x_max, double x_min, double y_max, double y_min, double diap_x, double diap_y, valarray<double>& X, valarray<double>& Y, double(*f)(valarray<double>&, valarray<double>&, double)) {
+    HPEN Pen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));        //ручка для разметки 
+    HPEN Pen1 = CreatePen(PS_SOLID, 2, RGB(0, 255, 0));     //ручка для графика 
+    HPEN Pen2 = CreatePen(PS_SOLID, 8, RGB(255, 0, 0));     //ручка для точек
+    double y, x;
+    wchar_t strtmp[20] = {0};
+    SelectObject(hDC, Pen);
+    //деления oX
+    for (x = x_min + diap_x; x < x_max; x += diap_x) {
+        MoveToEx(hDC, width * (x - x_min) / (x_max - x_min), height / 2 - height / 250 - 1, NULL);
+        LineTo(hDC, width * (x - x_min) / (x_max - x_min), height / 2 + height / 250 + 1);
+        swprintf(strtmp, 20, L"%.3lf", x);
+        TextOutW(hDC, width * (x - x_min) / (x_max - x_min), height / 2 + height / 250, strtmp, wcslen(strtmp));
+    }
+    //деления oY
+    for (y = y_min + diap_y; y < y_max; y += diap_y) {
+        MoveToEx(hDC, width / 2 - width / 250 - 1, height * (y_max - y) / (y_max - y_min), NULL);
+        LineTo(hDC, width / 2 + width / 250 + 1, height * (y_max - y) / (y_max - y_min));
+        swprintf(strtmp, 20, L"%.4lf", y);
+        TextOutW(hDC, width / 2 + width / 250, height * (y_max - y) / (y_max - y_min), strtmp, wcslen(strtmp));
+    }
+    //оси координат 
+    MoveToEx(hDC, 0, height / 2, NULL);
+    LineTo(hDC, width, height / 2);
+    MoveToEx(hDC, width / 2, height, NULL);
+    LineTo(hDC, width / 2, 0);
+    //стрелка oY 
+    MoveToEx(hDC, width / 2, 0, NULL);
+    LineTo(hDC, width / 2 + 10, 10);
+    MoveToEx(hDC, width / 2 - 10, 10, NULL);
+    LineTo(hDC, width / 2, 0);
+    //стрелка оХ 
+    MoveToEx(hDC, width - 10, height / 2 - 10, NULL);
+    LineTo(hDC, width, height / 2);
+    MoveToEx(hDC, width, height / 2, NULL);
+    LineTo(hDC, width - 10, height / 2 + 10);
+    //вывод точек и графика, строящегося по данным точкам
+    SelectObject(hDC, Pen1);
+    diap_x /= 100;
+    for (x = x_min; x < x_max; x += diap_x) {
+        MoveToEx(hDC, width * (x - x_min) / (x_max - x_min), height * (y_max - f(X, Y, x)) / (y_max - y_min), NULL);
+        LineTo(hDC, width * (x + diap_x - x_min) / (x_max - x_min), height * (y_max - f(X, Y, x + diap_x)) / (y_max - y_min));
+    }
+    SelectObject(hDC, Pen2);
+    for (unsigned i = 0; i < X.size(); ++i) {
+        MoveToEx(hDC, width * (X[i] - x_min) / (x_max - x_min), height * (y_max - Y[i]) / (y_max - y_min), NULL);
+        LineTo(hDC, width * (X[i] - x_min) / (x_max - x_min), height * (y_max - Y[i]) / (y_max - y_min));
+    }
+}
+
+LRESULT WINAPI WndProc(HWND, UINT, WPARAM, LPARAM);
+void CreateWindowForPlot(valarray<double>& X, valarray<double>& Y, double(*f)(valarray<double>&, valarray<double>&, double)) {
     double x_max, x_min, diap_x;
     double y_max, y_min, diap_y;
-    double y, x;
     y_min = Y.min(); x_min = X.min();
     y_max = Y.max(); x_max = X.max();
-    diap_x = (x_max - x_min) / 10;
-    diap_y = (y_max - y_min) / 10;                             //диапазон делений для оY 
+    diap_x = (x_max - x_min) / 10;     //диапазон делений для oX
+    diap_y = (y_max - y_min) / 9;      //диапазон делений для оY
+    x_max += diap_x / 2; x_min -= diap_x / 2;
     y_max += diap_y; y_min -= diap_y;
-    HDC hDC = GetDC(GetConsoleWindow());                       //настройка консоли для рисования 
-    HPEN Pen = CreatePen(PS_SOLID, 1, RGB(255, 255, 255));     //ручка для разметки 
-    HPEN Pen1 = CreatePen(PS_SOLID, 2, RGB(0, 255, 0));        //ручка для графика 
-    HPEN Pen2 = CreatePen(PS_SOLID, 8, RGB(255, 0, 0));        //ручка для точек
-    if (true) {
-        HWND hwnd = GetConsoleWindow();
-        RECT rect;
-        //через прямоугольник rect описывается консолька 
-        GetWindowRect(hwnd, &rect);
-        int width = rect.right - rect.left;
-        int height = rect.bottom - rect.top;
-        SelectObject(hDC, Pen);
-        //оси координат 
-        MoveToEx(hDC, 0, height / 2, NULL);
-        LineTo(hDC, width, height / 2);
-        MoveToEx(hDC, width / 2, height, NULL);
-        LineTo(hDC, width / 2, 0);
-        //стрелка oY 
-        MoveToEx(hDC, width / 2, 0, NULL);
-        LineTo(hDC, width / 2 + 10, 10);
-        MoveToEx(hDC, width / 2 - 10, 10, NULL);
-        LineTo(hDC, width / 2, 0);
-        //стрелка оХ 
-        MoveToEx(hDC, width - 10, height / 2 - 10, NULL);
-        LineTo(hDC, width, height / 2);
-        MoveToEx(hDC, width, height / 2, NULL);
-        LineTo(hDC, width - 10, height / 2 + 10);
-        //деления oX
-        for (x = x_min; x < x_max; x += diap_x){
-            MoveToEx(hDC, width * (x - x_min) / (x_max - x_min), height / 2 - height / 250 - 1, NULL);
-            LineTo(hDC, width * (x - x_min) / (x_max - x_min), height / 2 + height / 250 + 1);
-        }
-        //деления oY
-        for (y = y_min; y < y_max; y += diap_y){
-            MoveToEx(hDC, width / 2 - width / 250 - 1, height * (y_max - y) / (y_max - y_min), NULL);
-            LineTo(hDC, width / 2 + width / 250 + 1, height * (y_max - y) / (y_max - y_min));
-        }
-        //вывод графика и точек, по которому он строится
-        SelectObject(hDC, Pen1);
-        for (x = x_min; x < x_max; x += 1e-3){
-            MoveToEx(hDC, width * (x - x_min) / (x_max - x_min), height * (y_max - f(X, Y, x)) / (y_max - y_min), NULL);
-            LineTo(hDC, width * (x + 1e-3 - x_min) / (x_max - x_min), height * (y_max - f(X, Y, x + 1e-3)) / (y_max - y_min));
-        }
-        SelectObject(hDC, Pen2);
-        for (unsigned i = 0; i < X.size(); ++i) {
-            MoveToEx(hDC, width * (X[i] - x_min) / (x_max - x_min), height * (y_max - Y[i]) / (y_max - y_min), NULL);
-            LineTo(hDC, width * (X[i] - x_min) / (x_max - x_min), height * (y_max - Y[i]) / (y_max - y_min));
+    //Получаем хендл приложения, потребуется при создании класса окна и самого окна.
+    HINSTANCE histance = GetModuleHandleW(NULL);
+
+    //Создаем класс окна.
+    WNDCLASSEX wclass = { 0 };                                  //Обнуляем структуру с самого начала, так как заполнять будем не все поля.
+    wclass.cbSize = sizeof(WNDCLASSEX);                         //По размеру структуры Windows определит, какая версия API была использована.
+    wclass.style = CS_HREDRAW | CS_VREDRAW;                     //Говорим окну перерисовываться при изменении размеров окна.
+    wclass.lpfnWndProc = WndProc;                               //Указываем функцию обработки сообщений.
+    wclass.hInstance = histance;                                //Указываем хендл приложения.
+    wclass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH); //GetStockObject возвращает хендл на белую кисточку, для фона окна
+    wclass.lpszClassName = L"MYCLASS";                          //Имя данного класса, должно быть уникальным, иначе, если класс с таким именем уже зарегестрирован, то в регистрации будет отказано.
+    //Регистрируем класс окна.
+    RegisterClassEx(&wclass);
+
+    //Создаем окно.
+    HWND window = CreateWindowExW(
+        0,
+        L"MYCLASS",                         //Имя класса
+        L"Рисование графика",               //Заголовок окна
+        WS_OVERLAPPEDWINDOW | WS_MAXIMIZE,  //Тип окна, влияет на отображение системного меню, кнопок в верхнем правом углу и т.п.
+        50, 50,                             //Координаты окна (не нужно)
+        320, 240,                           //Ширина окна (не нужно)
+        0,                                  //Ссылка на родительское окно (отсутствует)
+        0,                                  //Хендл меню (отсутсвует)
+        histance,                           //Хендл приложения
+        0
+    );
+    HDC hDC = GetDC(window);                //настройка окна для рисования 
+
+    //Показываем окно, если этого не сделать окно не будет отображено.
+    ShowWindow(window, SW_SHOW);
+    //Обновляем окно.
+    UpdateWindow(window);
+    RECT rect;
+    //через прямоугольник rect описывается поле для рисования в окне
+    GetClientRect(window, &rect);           //определние размеров рабочей области для рисования
+    int width = rect.right - rect.left;     //определение ширины области
+    int height = rect.bottom - rect.top;    //определение высоты области
+    DrawPlot(hDC, width, height, x_max, x_min, y_max, y_min, diap_x, diap_y, X, Y, f);
+
+    //Запускаем цикл обработки сообщений окна.
+    MSG msg = { 0 };
+    while (GetMessage(&msg, 0, 0, 0)) {     //обработка изменения разрешения окна
+        DispatchMessage(&msg);              //Передаем сообщения для обработки в "главную функцию обработки сообщений"
+        GetClientRect(window, &rect);
+        if (width != rect.right - rect.left || height != rect.bottom - rect.top) {
+            width = rect.right - rect.left;
+            height = rect.bottom - rect.top;
+            DrawPlot(hDC, width, height, x_max, x_min, y_max, y_min, diap_x, diap_y, X, Y, f);
         }
     }
-    _getch();
+}
+
+// главная функция обработки сообщений
+LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg) {
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+    }
+    return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+vector <double> CalcCoef(unsigned size, valarray<double>& X, valarray<double>& Y, double(*f)(valarray<double>&, valarray<double>&, double)) {
+    vector <valarray<double>> SLAE(size, valarray<double>(size + 1));
+    for (unsigned i = 0, j; i < size; ++i) {
+        for (j = 0; j < size; ++j)
+            SLAE[i][j] = pow(i, j);
+        SLAE[i][j] = f(X, Y, i);
+    }
+    return Gaus(SLAE);
 }
 
 int main() {
@@ -169,13 +245,6 @@ int main() {
             return 0;
         }
     }
-    //double x;
-   /** cout << "Enter point where is need to calculate value: ";
-    cin >> x;
-    if (!cin) {
-        cout << "Incorrect input" << endl;
-        return 0;
-    } /**/
 
     cout << endl << "Select problem: " << endl;
     cout << "1) Interpolation" << endl;
@@ -200,12 +269,30 @@ int main() {
     cout << endl;
 
     if (choice == 1) {
-        DrawInterPol(X, Y, Lagrange);
-        //cout << "Value in selected point calculated by Lagrange: " << ans << endl;
+        CreateWindowForPlot(X, Y, Lagrange);
+        m = CalcCoef(size, X, Y, Lagrange);
+        for (unsigned i = 0; i < size; ++i) {
+            cout << "(" << m[i] << ")";
+            if (i > 0)
+                cout << " * x";
+            if (i > 1)
+                cout << "^" << i;
+            if (i + 1 < size) cout << " + ";
+        }
+        cout << endl;
     }
     else if (choice == 2) {
-        DrawInterPol(X, Y, Newton);
-        //cout << "Value in selected point calculated by Newton: " << ans << endl;
+        CreateWindowForPlot(X, Y, Newton);
+        m = CalcCoef(size, X, Y, Newton);
+        for (unsigned i = 0; i < size; ++i) {
+            cout << "(" << m[i] << ")";
+            if (i > 0)
+                cout << " * x";
+            if (i > 1)
+                cout << "^" << i;
+            if (i + 1 < size) cout << " + ";
+        }
+        cout << endl;
     }
     else {
         vector <double> h(size), P(size), Q(size);
@@ -221,21 +308,32 @@ int main() {
         m[size - 1] = 0; m[0] = 0;
         for (unsigned i = size - 1; i > 0; --i)
             m[i - 1] = P[i] * m[i] + Q[i];
-        /*m.resize(6);
-        m[0] = 0; m[5] = 0;
-        m[1] = 267.15494791670392;
-        m[2] = 249.71354166664284;
-        m[3] = 216.14583333331728;
-        m[4] = 260.41666666667624;*/
-        DrawInterPol(X, Y, Splines);
-        
-        //cout << "Value in selected point calculated by splines: " << ans << endl;
-        //vector <double> coef = {(m[l+1] - m[l]) / (6*h[l+1]), (X[l+1] * m[l] - X[l] * m[l+1]) / (2*h[l+1]), (pow(X[l], 2) * m[l+1] - pow(X[l+1], 2) * m[l]) / (2*h[l+1]) + (Y[l+1] - m[l+1] * h[l+1]*h[l+1] / 6 - (Y[l] - m[l] * h[l+1]*h[l+1] / 6)) / h[l+1], (pow(X[l+1], 3) * m[l] - pow(X[l], 3) * m[l+1]) / (6*h[l+1]) - (Y[l+1] - m[l+1] * h[l+1]*h[l+1] / 6) * X[l] / h[l+1] + (Y[l] - m[l] * h[l+1]*h[l+1] / 6) * X[l+1] / h[l+1]};
-        //printf("Spline: (%.2lf) * x^3 + (%.2lf) * x^2 + (%.2lf) * x + (%.2lf)\n", coef[0], coef[1], coef[2], coef[3]);
+        CreateWindowForPlot(X, Y, Splines);
+        vector<double> coef;
+        for (l = 0; l + 1 < size; ++l) {
+            coef = CalcCoef(4, X, Y, Spline);
+            cout << "Spline " << l + 1 << " : ";
+            for (unsigned j = 0; j < 4; ++j) {
+                cout << "(" << coef[j] << ")";
+                if (j > 0)
+                    cout << " * x";
+                if (j > 1)
+                    cout << "^" << j;
+                if (j + 1 < 4) cout << " + ";
+            }
+            cout << endl;
+        }
+    }
+    if (choice == 1 || choice == 2) {
+        m = CalcCoef(size, X, Y, Lagrange);
+        eps = ApproxPolynom(X, Y, 0.1875);
+        m = CalcCoef(size, X, Y, Newton);
+        eps -= ApproxPolynom(X, Y, 0.1875);
+        cout << endl << "Accuracy in point " << 0.1875 << " : " << fabs(eps) << endl;
     }
     return 0;
 
-CHOICE_OF_APPR_METHOD:
+    CHOICE_OF_APPR_METHOD:
     cout << endl << "Select method of approximation:" << endl;
     cout << "1) By quadratic polinom" << endl;
     cout << "2) By line" << endl;
@@ -255,8 +353,6 @@ CHOICE_OF_APPR_METHOD:
             SLAE[i][j] = (pow(X, 2 - i) * Y).sum();
         }
         m = Gaus(SLAE);
-        //printf("Approximation by quadratic polynom (%.2lf) * x^2 + (%.2lf) * x + (%.2lf)\n", coef[0], coef[1], coef[2]);
-        //printf("Discrepancy of approximation: %.2lf\n", pow(coef[0] * X * X + coef[1] * X + coef[2] - Y, 2).sum());
     }
     else {
         vector <valarray<double>> SLAE(2, valarray<double>(3));
@@ -267,10 +363,18 @@ CHOICE_OF_APPR_METHOD:
             SLAE[i][j] = (pow(X, 1 - i) * Y).sum();
         }
         m = Gaus(SLAE);
-        //printf("Approximation by line (%.2lf) * x + (%.2lf)\n", coef[0], coef[1]);
-        //printf("Discrepancy of approximation: %.2lf\n", pow(coef[0] * X + coef[1] - Y, 2).sum());
     }
-    DrawInterPol(X, Y, ApproxPolynom);
+    CreateWindowForPlot(X, Y, ApproxPolynom);
+    for (unsigned i = 0; i < 4 - choice; ++i) {
+        cout << "(" << m[i] << ")";
+        if (3 - choice - i > 0)
+            cout << " * x";
+        if (3 - choice - i > 1)
+            cout << "^" << 3 - choice - i;
+        if (i + 1 + choice < 4)
+            cout << " + ";
+    }
+    cout << endl;
     return 0;
 }
 
