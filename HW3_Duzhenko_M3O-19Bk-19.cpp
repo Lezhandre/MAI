@@ -1,3 +1,20 @@
+//
+///  М3О-219Бк-19, Дуженко Михаил, 10-ый вариант
+//
+///  Руководство по использованию программы:
+//  После запуска программы в консоли/терминале предлагается ввести количество узлов, а
+//  затем сами узлы. Далее нужно выбрать одну из задач: интерполяцию или аппроксимацию
+//  по заданным узлам. После выбора задачи предлагаются методы её решения.
+//
+///  Вывод результатов:
+//  После всех введённых данных появляется окно во весь экран, в рабочей области которого
+//  нарисован график по заданному методу и задаче. При закрытии данного окна, в консоли
+//  выводятся многочлены или сплайны, график которых был отображён и точность или невязка
+//  в зависимости от метода и задачи.
+//
+//  Ниже основного кода написаны комментарии с условиями из 10-ого варианта.
+//
+
 #include <vector>
 #include <valarray>
 #include <cmath>
@@ -205,6 +222,7 @@ void CreateWindowForPlot(valarray<double>& X, valarray<double>& Y, double(*f)(va
             DrawPlot(hDC, width, height, x_max, x_min, y_max, y_min, diap_x, diap_y, X, Y, f);
         }
     }
+    UnregisterClass(L"MYCLASS", histance);
 }
 
 // главная функция обработки сообщений
@@ -220,10 +238,10 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 vector <double> CalcCoef(unsigned size, valarray<double>& X, valarray<double>& Y, double(*f)(valarray<double>&, valarray<double>&, double)) {
     vector <valarray<double>> SLAE(size, valarray<double>(size + 1));
-    for (unsigned i = 0, j; i < size; ++i) {
+    for (unsigned x = 0, j; x < size; ++x) {
         for (j = 0; j < size; ++j)
-            SLAE[i][j] = pow(i, j);
-        SLAE[i][j] = f(X, Y, i);
+            SLAE[x][j] = pow(x, j);
+        SLAE[x][j] = f(X, Y, x);
     }
     return Gaus(SLAE);
 }
@@ -232,7 +250,7 @@ int main() {
     unsigned size, choice;
     cout << "Enter quantity of nodal values: ";
     cin >> size;
-    if (!cin || size < 1) {
+    if (!cin || size < 2) {
         cout << "Incorrect input" << endl;
         return 0;
     }
@@ -254,7 +272,8 @@ int main() {
         cout << "Incorrect input" << endl;
         return 0;
     }
-    double ans = 0, tmp;
+    valarray<double> ans(size);
+    double tmp;
     if (choice == 2) goto CHOICE_OF_APPR_METHOD;
 
     cout << endl << "Select method of interpolation" << endl;
@@ -365,7 +384,8 @@ int main() {
         m = Gaus(SLAE);
     }
     CreateWindowForPlot(X, Y, ApproxPolynom);
-    for (unsigned i = 0; i < 4 - choice; ++i) {
+    size = m.size();
+    for (unsigned i = 0; i < size; ++i) {
         cout << "(" << m[i] << ")";
         if (3 - choice - i > 0)
             cout << " * x";
@@ -375,6 +395,9 @@ int main() {
             cout << " + ";
     }
     cout << endl;
+    for (unsigned i = 0; i < size; ++i)
+        ans += m[i] * pow(X, 3 - choice - i);
+    cout << "Discrepancy of approximation polynom: " << pow(ans - Y, 2).sum() << endl;
     return 0;
 }
 
