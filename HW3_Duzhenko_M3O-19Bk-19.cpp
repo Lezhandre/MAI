@@ -186,7 +186,7 @@ void CreateWindowForPlot(valarray<double>& X, valarray<double>& Y, double(*f)(va
         0,
         L"MYCLASS",                         //Имя класса
         L"Рисование графика",               //Заголовок окна
-        WS_OVERLAPPEDWINDOW | WS_MAXIMIZE,  //Тип окна, влияет на отображение системного меню, кнопок в верхнем правом углу и т.п.
+        WS_OVERLAPPEDWINDOW | WS_MAXIMIZE,  //Тип окна (становится максимального размера и есть кнопки)
         50, 50,                             //Координаты окна (учитываются при свёртывании)
         500, 250,                           //Ширина окна (учитываются при свёртывании)
         0,                                  //Ссылка на родительское окно (отсутствует)
@@ -353,7 +353,6 @@ int main() {
         eps -= ApproxPolynom(X, Y, 0.1875);
         cout << endl << "Accuracy in point " << 0.1875 << " : " << fabs(eps) << endl;
     }
-    system("pause");
     return 0;
 
     CHOICE_OF_APPR_METHOD:
@@ -400,7 +399,6 @@ int main() {
     for (unsigned i = 0; i < size; ++i)
         ans += m[i] * pow(X, 3 - choice - i);
     cout << "Discrepancy of approximation polynom: " << pow(ans - Y, 2).sum() << endl;
-    system("pause");
     return 0;
 }
 
