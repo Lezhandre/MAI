@@ -21,8 +21,8 @@ using namespace std;
 
 double Lagrange(valarray<double>& X, valarray<double>& Y, double x) {
     double tmp, ans = 0;
-    size_t size = X.size();
-    for (size_t i = 0; i < size; ++i) {
+    unsigned size = X.size();
+    for (unsigned i = 0; i < size; ++i) {
         tmp = Y[i];
         for (unsigned k = 0; k < size; ++k) {
             if (k == i) continue;
@@ -63,30 +63,6 @@ double TrapInt(double a, double b, double eps){
             sum += 2 * f(a + (b - a) * i / n);
     }
     return sum * (b - a) / (2 * n);
-}
-
-double LeftRectInt(double a, double b, double eps){
-    double sum = f(a), prev_sum = -1;
-    unsigned n = 1, iter = 0;
-    while (fabs(sum - 2 * prev_sum) > eps * n / (b - a)){
-        n <<= 1; ++iter;
-        prev_sum = sum;
-        for (unsigned i = 1; i < n; i += 2)
-            sum += f(a + (b - a) * i / n);
-    }
-    return sum * (b - a) / n;
-}
-
-double RightRectInt(double a, double b, double eps){
-    double sum = f(b), prev_sum = 0;
-    unsigned n = 1, iter = 0;
-    while (fabs(sum - 2 * prev_sum) > eps * n / (b - a)){
-        n <<= 1; ++iter;
-        prev_sum = sum;
-        for (unsigned i = 1; i < n; i += 2)
-            sum += f(a + (b - a) * i / n);
-    }
-    return sum * (b - a) / n;
 }
 
 int main() {
@@ -131,10 +107,8 @@ int main() {
         cout << endl << "Select method of integration:" << endl;
         cout << "1) Simpson" << endl;
         cout << "2) Trapezium" << endl;
-        cout << "3) Left rectangles" << endl;
-        cout << "4) Right rectangles" << endl;
         cin >> choice;
-        if (!cin || choice == 0 || choice > 4) {
+        if (!cin || choice == 0 || choice > 2) {
             cout << "Incorrect input" << endl;
             return 0;
         }
@@ -142,16 +116,10 @@ int main() {
         switch (choice){
             case 1:
                 cout << "Integral calculated with Simpson's method: " << SimpInt(0, 1, eps) << endl;
-                break;
-            case 2:
-                cout << "Integral calculated with method of trapeziums: " << TrapInt(0, 1, eps) << endl;
-                break;
-            case 3:
-                cout << "Integral calculated with method of left rectangles: " << LeftRectInt(0, 1, eps) << endl;
-                break;
+            break;
             default:
-                cout << "Integral calculated with method of right rectangles: " << RightRectInt(0, 1, eps) << endl;
-                break;
+                cout << "Integral calculated with method of trapeziums: " << TrapInt(0, 1, eps) << endl;
+            break;
         }
     }
     return 0;
@@ -166,8 +134,8 @@ int main() {
  0.204 5.06649
  0.210 4.94619
  // x* : 0.1875
- \*/
+\*/
 
 /*\ for integral
  f(x) = sin(x) / (x + 1)
- \*/
+\*/
