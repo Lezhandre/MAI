@@ -66,7 +66,7 @@ double TrapInt(double a, double b, double eps){
 }
 
 double LeftRectInt(double a, double b, double eps){
-    double sum = f(a), prev_sum = 0;
+    double sum = f(a), prev_sum = -1;
     unsigned n = 1, iter = 0;
     while (fabs(sum - 2 * prev_sum) > eps * n / (b - a)){
         n <<= 1; ++iter;
@@ -134,7 +134,7 @@ int main() {
         cout << "3) Left rectangle" << endl;
         cout << "4) Right rectangle" << endl;
         cin >> choice;
-        if (!cin || choice == 0 || choice > 2) {
+        if (!cin || choice == 0 || choice > 4) {
             cout << "Incorrect input" << endl;
             return 0;
         }
