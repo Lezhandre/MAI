@@ -65,6 +65,30 @@ double TrapInt(double a, double b, double eps){
     return sum * (b - a) / (2 * n);
 }
 
+double LeftRectInt(double a, double b, double eps){
+    double sum = f(a), prev_sum = 0;
+    unsigned n = 1, iter = 0;
+    while (fabs(sum - 2 * prev_sum) > eps * n / (b - a)){
+        n <<= 1; ++iter;
+        prev_sum = sum;
+        for (unsigned i = 1; i < n; i += 2)
+            sum += f(a + (b - a) * i / n);
+    }
+    return sum * (b - a) / n;
+}
+
+double RightRectInt(double a, double b, double eps){
+    double sum = f(b), prev_sum = 0;
+    unsigned n = 1, iter = 0;
+    while (fabs(sum - 2 * prev_sum) > eps * n / (b - a)){
+        n <<= 1; ++iter;
+        prev_sum = sum;
+        for (unsigned i = 1; i < n; i += 2)
+            sum += f(a + (b - a) * i / n);
+    }
+    return sum * (b - a) / n;
+}
+
 int main() {
     unsigned choice;
     cout << endl << "Select problem: " << endl;
@@ -107,6 +131,8 @@ int main() {
         cout << endl << "Select method of integration:" << endl;
         cout << "1) Simpson" << endl;
         cout << "2) Trapezium" << endl;
+        cout << "3) Left rectangle" << endl;
+        cout << "4) Right rectangle" << endl;
         cin >> choice;
         if (!cin || choice == 0 || choice > 2) {
             cout << "Incorrect input" << endl;
@@ -117,8 +143,14 @@ int main() {
             case 1:
                 cout << "Integral calculated with Simpson's method: " << SimpInt(0, 1, eps) << endl;
             break;
-            default:
+            case 2:
                 cout << "Integral calculated with method of trapeziums: " << TrapInt(0, 1, eps) << endl;
+            break;
+            case 3:
+                cout << "Integral calculated with method of left rectangles: " << LeftRectInt(0, 1, eps) << endl;
+            break;
+            case 4:
+                cout << "Integral calculated with method of right rectangles: " << RightRectInt(0, 1, eps) << endl;
             break;
         }
     }
