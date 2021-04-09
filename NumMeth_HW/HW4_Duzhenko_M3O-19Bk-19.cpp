@@ -89,6 +89,18 @@ double RightRectInt(double a, double b, double eps){
     return sum * (b - a) / n;
 }
 
+double MiddleRectInt(double a, double b, double eps){
+    double sum = f((a + b) / 2), prev_sum = 0;
+    unsigned n = 2, iter = 0;
+    while (fabs(sum - 2 * prev_sum) > eps * n / (b - a)){
+        n <<= 1; ++iter;
+        prev_sum = sum;
+        for (unsigned i = 1; i < n; i += 2)
+            sum += f(a + (b - a) * i / n);
+    }
+    return sum * (b - a) / n;
+}
+
 int main() {
     unsigned choice;
     cout << endl << "Select problem: " << endl;
@@ -133,8 +145,9 @@ int main() {
         cout << "2) Trapezium" << endl;
         cout << "3) Left rectangle" << endl;
         cout << "4) Right rectangle" << endl;
+        cout << "5) Middle rectangle" << endl;
         cin >> choice;
-        if (!cin || choice == 0 || choice > 4) {
+        if (!cin) {
             cout << "Incorrect input" << endl;
             return 0;
         }
@@ -152,6 +165,12 @@ int main() {
             case 4:
                 cout << "Integral calculated with method of right rectangles: " << RightRectInt(0, 1, eps) << endl;
             break;
+            case 5:
+                cout << "Integral calculated with method of middle rectangles: " << MiddleRectInt(0, 1, eps) << endl;
+            break;
+            default:
+                cout << "Incorrect input" << endl;
+                return 0;
         }
     }
     return 0;
