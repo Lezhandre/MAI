@@ -16,19 +16,48 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
-double Lagrange(valarray<double>& X, valarray<double>& Y, double x) {
-    double tmp, ans = 0;
-    unsigned size = X.size();
-    for (unsigned i = 0; i < size; ++i) {
-        tmp = Y[i];
-        for (unsigned k = 0; k < size; ++k) {
-            if (k == i) continue;
-            tmp *= (x - X[k]) / (X[i] - X[k]);
+vector <double> Gaus(vector <valarray<double>> a) {
+    unsigned n = a.size();
+    vector <double> ans(n);
+    double coef;
+    for (unsigned i = 0; i < n; ++i) {
+        unsigned j;
+        for (j = i; j < n && a[j][i] == 0; ++j);
+        if (j == n) {
+            cout << "System has no solution or their quantity is infinity" << endl;
+            exit(0);
         }
-        ans += tmp;
+        if (i != j)
+            swap(a[j], a[i]);
+        for (j = 0; j < n; ++j) {
+            if (j == i) continue;
+            coef = a[j][i] / a[i][i];
+            a[j] -= a[i] * coef;
+        }
+    }
+    for (unsigned i = 0; i < n; ++i)
+        ans[i] = a[i][n] / a[i][i];
+    return ans;
+}
+
+double Derivative(valarray<double>& X, valarray<double>& Y, double x, unsigned degree) {
+    unsigned size = X.size();
+    vector <valarray<double>> SLAE(size, valarray<double>(size + 1));
+    for (unsigned i = 0, j; i < size; ++i) {
+        for (j = 0; j < size; ++j)
+            SLAE[i][j] = pow(X[i], j);
+        SLAE[i][j] = Y[i];
+    }
+    vector <double> coef = Gaus(SLAE);
+    double ans = 0;
+    for (unsigned i = degree, j; i < size; ++i){
+        for (j = i; j + degree > i; --j)
+            coef[i] *= j;
+        ans += coef[i] * pow(x, i - degree);
     }
     return ans;
 }
@@ -137,8 +166,8 @@ int main() {
             cout << "Incorrect input" << endl;
             return 0;
         }
-        cout << "First derivative in point " << x << " : " << (Lagrange(X, Y, x + eps) - Lagrange(X, Y, x - eps)) / (2 * eps) << endl;
-        cout << "Second derivative in point " << x << " : " << (Lagrange(X, Y, x + eps) + Lagrange(X, Y, x - eps) - 2 * Lagrange(X, Y, x)) * pow(eps, -2) << endl;
+        cout << "First derivative in point " << x << " : " << Derivative(X, Y, x, 1) << endl;
+        cout << "Second derivative in point " << x << " : " << Derivative(X, Y, x, 2) << endl;
     } else {
         cout << endl << "Select method of integration:" << endl;
         cout << "1) Simpson" << endl;
