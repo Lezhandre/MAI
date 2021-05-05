@@ -2,17 +2,13 @@
 ///  Дуженко Михаил, М3О-219Бк-19, 10-ый вариант
 //
 ///  Руководство по использованию программы:
-//  Для начала нужно ввести количество неизвестных (size), потом нужно ввести матрицу,
-//  состоящую из size x (size + 1) элементов, которая будет представляться как коэффициенты в СЛАУ.
-//  Далее предложится на выбор один из 4-ёх алгоритмов решения СЛАУ, при вводе цифры которого
-//  СЛАУ будет решена данным методом.
+//  Сначала предлагается ввести границы отрезка и шаг деления. Затем для каждой границы
+//  нужно ввести граничные условия.
 //
-///  Ограничения в работе программы:
-//  Метод Гаусса, в принципе, сам напишет возникшую ошибку при решении СЛАУ
-//  Метод итераций и Зейделя работают, только при условии, что диагональные элементы имеют
-//  большие коэффициенты (по модулю они должны быть больше суммы модулей остальных коэффициентах
-//  при других элементах)
-//  Метод прогонки используется только для 3-ёх-диагональных матриц
+///  Вывод программы:
+//  Вывод табличных значений функции осуществляется в консоли/терминале.
+//  Вывод графика появляется в отдельном окне. При зажатии ЛКМ отображаются координаты
+//  точки, находящейся на месте курсора.
 //
 //  Вводимые данные в программу для 10-ого варианта находятся в комментариях
 //  под основным кодом программы
@@ -22,7 +18,11 @@
 #include <vector>
 #include <valarray>
 #include <algorithm>
+#ifdef __APPLE__
 #include <GLUT/glut.h>
+#else
+#include <GL/gl.h>
+#endif
 #include <GLFW/glfw3.h>
 
 #define MSoN 20
@@ -47,7 +47,7 @@ valarray<double> Runthrough(vector<valarray<double>> matrix){
         q[i+1] = (matrix[i][size] - a * q[i]) / (b + a * p[i]);
     }
     valarray<double> x(size);
-    x[size-1] = q[size];
+    x[size - 1] = q[size];
     for (unsigned i = size - 1; i > 0; --i){
         x[i - 1] = q[i] + p[i] * x[i];
     }
@@ -116,11 +116,27 @@ int main(){
     unsigned size = (b - a) / step + 1;
     vector<valarray<double>> coef(size);
     X.resize(size);
-    int i = 0;
+    unsigned i = 0;
     for (; i < size; ++i)
         coef[i].resize(size + 1);
     i = 0;
     X[i] = a;
+    {
+        double l, m, f;
+        cout << "Enter left boundary condition: ";
+        cin >> l >> m >> f;
+        if (!cin) {
+            cout << "Incorrect input" << endl;
+            return 0;
+        }
+        //y'
+        coef[i][i] = -l / step;
+        coef[i][i+1] = l / step;
+        //y
+        coef[i][i] += m;
+        //free coef
+        coef[i][size] = f;
+    }
     coef[0][0] = 12; coef[0][1] = -10; coef[0][size] = 1;
     for (i = 1; i + 1 < size; ++i){
         X[i] = a + step * i;
@@ -137,10 +153,26 @@ int main(){
         coef[i][size] = f(X[i]);
     }
     X[i] = b;
-    coef[i][size - 1] = 1; coef[i][size] = 3;
+    {
+        double l, m, f;
+        cout << "Enter right boundary condition: ";
+        cin >> l >> m >> f;
+        if (!cin) {
+            cout << "Incorrect input" << endl;
+            return 0;
+        }
+        //y'
+        coef[i][i-1] = -l / step;
+        coef[i][i] = l / step;
+        //y
+        coef[i][i] += m;
+        //free coef
+        coef[i][size] = f;
+    }
+    cout << endl;
     
     Y = Runthrough(coef);
-    for (int i = 0; i < size; ++i){
+    for (i = 0; i < size; ++i){
         printf("y(%lg) = %lg\n", X[i], Y[i]);
     }
     y_max = Y.max();
@@ -176,13 +208,12 @@ int main(){
     GLFWwindow* window = glfwCreateWindow(1, 1, "График функции, полученной из дифференциального уравнения y\" + 1.5y' - xy = 0.5", nullptr, nullptr);
     if (window == nullptr) {
         glfwTerminate();
-        cout << endl << "Window doesn't created!" << endl;
+        cout << endl << "Window didn't create!" << endl;
         return 0;
     }
     glfwSetCursor(window, cursor);
     glfwSetWindowSizeLimits(window, 300, 300, GLFW_DONT_CARE, GLFW_DONT_CARE);
     glfwMakeContextCurrent(window);
-    glEnable(GL_MULTISAMPLE);
     glClearColor(1, 1, 1, 0);           // Заполняем задний фон белым цветом
     glMatrixMode(GL_PROJECTION);        // Матрица проекции
     glLoadIdentity;                     // задание единичной матрицы
@@ -257,7 +288,7 @@ void CountStreak(bool wh, int len, double realen, double& streak){
             streak /= 2;
             flag = 0;
         }
-        l = pow(length(streak), wh);
+        l = pow(0.6 * length(streak), wh);
     }
     if (flag)
         flag = 3 - flag;
@@ -273,7 +304,7 @@ void CountStreak(bool wh, int len, double realen, double& streak){
             streak *= 2;
             flag = 0;
         }
-        l = pow(length(streak), wh);
+        l = pow(0.6 * length(streak), wh);
     }
 }
 
@@ -307,13 +338,13 @@ void DrawGraph(GLFWwindow* window, int width, int height){
     // Прорисовка делений на оси ординат
     glBegin(GL_POINTS);
     glColor3f(0.1, 0.1, 0.1);
-    for (x = floor((b - (b - a) * length(streak) * MSoN / width) / streak) * streak; x >= a; x -= streak){
+    for (x = floor((b - (b - a) * length(streak) * 0.6 * MSoN / width) / streak) * streak; x >= a; x -= streak){
         glVertex2d(x, corr);
     }
     glEnd();
     // Прорисовка чисел для делений
     glColor3f(0.9, 0.5, 0);
-    for (x = floor((b - (b - a) * length(streak) * MSoN / width) / streak) * streak; x >= a; x -= streak){
+    for (x = floor((b - (b - a) * length(streak) * 0.6 * MSoN / width) / streak) * streak; x >= a; x -= streak){
         x = round(x / streak) * streak;
         draw_num(x, x, corr, width, height);
     }
@@ -387,3 +418,10 @@ void MButtonPress(GLFWwindow* window, int button, int action, int mod){
         LBP = 2;
     }
 }
+
+/*\
+ Границы отрезка: 1.3 1.6
+ Шаг: 0.1
+ Условие для левой границы (2y' - y = 1): 2 -1 1
+ Условие для правой границы (y = 3): 0 1 3
+\*/
